@@ -3,7 +3,6 @@ import pandas as pd
 import pickle
 import streamlit as st
 import requests
-from fuzzywuzzy import fuzz, process  # Make sure you have the fuzzywuzzy library installed
 import base64
 # Function to fetch poster
 def fetch_poster(movie_id):
@@ -16,30 +15,18 @@ def fetch_poster(movie_id):
         return full_path
     return None
 
-# Function to recommend movies
 def recommend(movie):
-    # Search for movie titles with typo tolerance
-    matches = process.extract(movie, movies['title'], scorer=fuzz.token_set_ratio)
-    relevant_matches = [match for match in matches if match[1] >= 90]
+    index = movies[movies['title'] == movie].index[0]
+    distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
+    recommended_movie_names = []
+    recommended_movie_posters = []
+    for i in distances[1:6]:
+        # fetch the movie poster
+        movie_id = movies.iloc[i[0]].movie_id
+        recommended_movie_posters.append(fetch_poster(movie_id))
+        recommended_movie_names.append(movies.iloc[i[0]].title)
 
-    if relevant_matches:
-        # Get the closest matching title
-        closest_match = relevant_matches[0][0]
-        index = movies[movies['title'] == closest_match].index[0]
-
-        distances = sorted(enumerate(similarity[index]), reverse=True, key=lambda x: x[1])
-        recommended_movie_names = []
-        recommended_movie_posters = []
-
-        for i in distances[1:6]:
-            # Fetch the movie poster
-            movie_id = movies.iloc[i[0]].movie_id
-            recommended_movie_posters.append(fetch_poster(movie_id))
-            recommended_movie_names.append(movies.iloc[i[0]].title)
-
-        return recommended_movie_names, recommended_movie_posters
-    else:
-        return [], []
+    return recommended_movie_names,recommended_movie_posters
 
 # Load movies and similarity data
 movies = pickle.load(open('movie2_dict.pkl','rb'))
