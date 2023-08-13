@@ -29,7 +29,7 @@ def recommend(movie):
     return recommended_movie_names,recommended_movie_posters
 
 # Load movies and similarity data
-movies = pickle.load(open('model/movie2_dict.pkl','rb'))
+movies = pickle.load(open('model/movie4_dict.pkl','rb'))
 similarity = pickle.load(open('model/similarity.pkl','rb'))
 
 # Streamlit app
